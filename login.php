@@ -131,6 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['loggedin'] = true;
         $_SESSION['divisi'] = $divisi;
         header('Location: index.php'); // Redirect to the main page after successful login
+        exit();
     } else {
         echo "<script>alert('Divisi atau Password salah'); window.location.href='login.php';</script>";
     }
@@ -140,4 +141,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $connect->close();
 }
 ?>
+
 

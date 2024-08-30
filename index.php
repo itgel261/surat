@@ -1,4 +1,3 @@
-
 <?php
 // Start the session as the very first thing
 session_start();
@@ -20,11 +19,17 @@ $sqluser = mysqli_query($connect, "SELECT * FROM user");
 $a = mysqli_fetch_array($sqluser);
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $simpan = mysqli_query($connect, "INSERT INTO datasurat(nosurat, tanggal, tandatangan, perihal, isisurat, hasilsurat)
-                VALUES('$_POST[nosurat]', '$_POST[tanggal]', '$_POST[tandatangan]', '$_POST[perihal]', '$_POST[isisurat]', '$_POST[hasilsurat]')");
+    $nosurat = mysqli_real_escape_string($connect, $_POST['nosurat']);
+    $tanggal = mysqli_real_escape_string($connect, $_POST['tanggal']);
+    $tandatangan = mysqli_real_escape_string($connect, $_POST['tandatangan']);
+    $perihal = mysqli_real_escape_string($connect, $_POST['perihal']);
+    $isisurat = mysqli_real_escape_string($connect, $_POST['isisurat']);
+    $hasilsurat = mysqli_real_escape_string($connect, $_POST['hasilsurat']);
+
+    $simpan = mysqli_query($connect, "INSERT INTO datasurat (nosurat, tanggal, tandatangan, perihal, isisurat, hasilsurat)
+                VALUES ('$nosurat', '$tanggal', '$tandatangan', '$perihal', '$isisurat', '$hasilsurat')");
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -180,61 +185,62 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </style>
 </head>
 <body>
-
 <h1>Nomer Surat PT.GEL</h1>
 
-<button class="logout-button" onclick="logout()">Logout</button>
+<form method="POST" action="">
+    <button class="logout-button" type="button" onclick="logout()">Logout</button>
 
-<div class="form-group">
-    <?php
-        if ($a) {
-            $prefix = isset($a['prefix']) ? htmlspecialchars($a['prefix']) : '';
-            echo '<input type="hidden" id="prefix" value="' . $prefix . '">';
-        } else {
-            echo '<input type="hidden" id="prefix" value="">';
-        }
-    ?>
-</div>
-
-<div class="form-group">
-    <label for="divisi">Divisi: </label>
-    <select id="divisi">
+    <div class="form-group">
         <?php
-            mysqli_data_seek($sqluser, 0); // Reset pointer to start
-            while ($a = mysqli_fetch_array($sqluser)) {
-                echo '<option value="' . htmlspecialchars($a['divisi']) . '">' . htmlspecialchars($a['divisi']) . '</option>';
+            if ($a) {
+                $prefix = isset($a['prefix']) ? htmlspecialchars($a['prefix']) : '';
+                echo '<input type="hidden" id="prefix" value="' . $prefix . '">';
+            } else {
+                echo '<input type="hidden" id="prefix" value="">';
             }
         ?>
-    </select>
-</div>
+    </div>
 
-<div class="form-group">
-    <label for="perihal">Perihal: </label>
-    <input type="text" name="perihal" id="perihal" placeholder="Masukkan Perihal Surat">
-</div>
+    <div class="form-group">
+        <label for="divisi">Divisi: </label>
+        <select id="divisi" name="divisi">
+            <?php
+                mysqli_data_seek($sqluser, 0); // Reset pointer to start
+                while ($a = mysqli_fetch_array($sqluser)) {
+                    echo '<option value="' . htmlspecialchars($a['divisi']) . '">' . htmlspecialchars($a['divisi']) . '</option>';
+                }
+            ?>
+        </select>
+    </div>
 
-<div class="form-group">
-    <label for="tanggal">Tanggal: </label>
-    <input name="tanggal" type="date" id="tanggal">
-</div>
+    <div class="form-group">
+        <label for="perihal">Perihal: </label>
+        <input type="text" name="perihal" id="perihal" placeholder="Masukkan Perihal Surat">
+    </div>
 
-<div class="form-group">
-    <label for="tandaTangan">Tanda Tangan: </label>
-    <input type="text" name="tandaTangan" id="tandaTangan" placeholder="Masukkan Nama Penanda Tangan">
-</div>
+    <div class="form-group">
+        <label for="tanggal">Tanggal: </label>
+        <input name="tanggal" type="date" id="tanggal">
+    </div>
 
-<div class="form-group">
-    <label for="manualCounter">Nomor Surat: </label>
-    <input type="text" name="manualCounter" id="manualCounter" placeholder="Masukkan Nomor Surat (Opsional)">
-</div>
+    <div class="form-group">
+        <label for="tandaTangan">Tanda Tangan: </label>
+        <input type="text" name="tandatangan" id="tandaTangan" placeholder="Masukkan Nama Penanda Tangan">
+    </div>
 
-<div class="form-group">
-    <label for="isiSurat">Isi Surat: </label>
-    <textarea name="isiSurat" id="isiSurat" rows="5" placeholder="Masukkan isi surat di sini..."></textarea>
-</div>
+    <div class="form-group">
+        <label for="manualCounter">Nomor Surat: </label>
+        <input type="text" name="manualCounter" id="manualCounter" placeholder="Masukkan Nomor Surat (Opsional)">
+    </div>
 
-<input type="submit" name="Simpan" size="18" class="btn btn-primary">
-<button onclick="generateNomorSurat()">Buat Nomor Surat</button>
+    <div class="form-group">
+        <label for="isiSurat">Isi Surat: </label>
+        <textarea name="isisurat" id="isiSurat" rows="5" placeholder="Masukkan isi surat di sini..."></textarea>
+    </div>
+
+    <button type="submit" name="Simpan">Simpan</button>
+    <button type="button" onclick="generateNomorSurat()">Buat Nomor Surat</button>
+</form>
 
 <p id="nomorSurat"></p>
 
@@ -263,6 +269,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
     <button onclick="exportToWord()">Ekspor ke Word</button>
 </div>
+
+<script>
+function logout() {
+    // Redirect to the logout.php page to handle session destruction
+    window.location.href = "logout.php";
+}
+</script>
+
 
 <script>
     let counter = 0;
@@ -311,15 +325,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         document.getElementById('hasilTandaTangan').innerText = tandaTangan;
 
         document.getElementById('hasilSurat').style.display = 'block';
-    }
-
-    function logout() {
-        // Clear session storage
-        sessionStorage.clear();
-        localStorage.clear();
-
-        // End session
-        window.location.href = "login.php";
     }
 
     function exportToWord() {
